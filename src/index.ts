@@ -64,7 +64,7 @@ const resumeHtml = `<!DOCTYPE html>
   </div>
 
   <h2><a href="https://youtube.com/@jordan-lenchitz/videos">jordan</a> <a href="https://scholar.google.com/citations?user=pDsbnHcAAAAJ&hl=en">lenchitz</a></h2>
-  <h3>systems engineer and experimental artist</h3>
+  <h3>systems engineer <a href="https://github.com/jordan-lenchitz/resume-worker">and</a> experimental artist</h3>
 
   <h3>likes:</h3>
   <ul>
