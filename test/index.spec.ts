@@ -86,7 +86,7 @@ describe("Hello World worker", () => {
 			  </div>
 
 			  <h2><a href="https://youtube.com/@jordan-lenchitz/videos">jordan</a> <a href="https://scholar.google.com/citations?user=pDsbnHcAAAAJ&hl=en">lenchitz</a></h2>
-			  <h3>systems engineer and experimental artist</h3>
+			  <h3>systems engineer <a href="https://github.com/jordan-lenchitz/resume-worker">and</a> experimental artist</h3>
 
 			  <h3>likes:</h3>
 			  <ul>
@@ -100,6 +100,9 @@ describe("Hello World worker", () => {
 			  <p><strong><a href="https://central.mychart.org">site</a> reliability engineer</strong> &middot; epic systems's epic hosting &middot; june 2023 to may 2026</p>
 			  <blockquote>my primary job from 2024 onward was ensuring 100% single sign-on (SSO) uptime for mychart central. i architected <a href="https://www.intersystems.com/news/intersystems-iris-data-platform-adopted-by-epic-for-its-new-generation-of-high-performance-scalability-and-architecture-flexibility/">intersystems iris</a> backends both on-prem and in public cloud, built and maintained unique <a href="https://datatracker.ietf.org/doc/html/rfc8446">tls 1.3</a> infrastructure for SOC 2 compliance, troubleshooted an etl modernization project moving from on-prem nightly to <a href="https://rsmus.com/insights/services/digital-transformation/epics-shift-to-microsoft-fabric-data-analytics.html">cogito cloud</a> (epic's realtime analytics product leveraging microsoft fabric and snowflake), and helped improve cross-team server observability leveraging Grafana </blockquote>
 			  <blockquote>beyond mychart central i supported the backend for the epic instances of dozens of healthcare organizations in the UK Canada and United States. i also had the honor of working with <a href="https://www.fisglobal.com/">FIS</a> on their <a href="https://sourceforge.net/projects/fis-gtm/">open-source GT.M ("Greystone Technology MUMPS")</a>. if you love free and open-source software check out this cool release note i validated <a href="https://fis-gtm.sourceforge.io/releasenotes/GTM_V7.1-009_Release_Notes.html#id29">(GTM-10833)</a>; if you think you do not love free and open-source software go read GT.M's <a href="https://web.archive.org/web/20001209123800/http://linuxpr.com/releases/2859.html">original gnu/linux open source press release</a> and then you will :)</blockquote>
+
+			  <p><strong>volunteer manager</strong> &middot; society for minimalist music &middot; may 2022 to may 2026</p>
+			  <blockquote>managed the web presence, digital archives, and server infrastructure for the society for minimalist music. this mostly involved running a tiny digital ocean droplet that had an nginx reverse proxy to a node backend with a sqlite db that would occasionally receive a PR from someone proposing a change to the CSS or a typo fix in a blog post about steve reich's clapping music. i also helped migrate from legacy to squarespace and paypal integration for membership dues and donations</blockquote>
 
 			  <p><strong>adjunct assistant professor of music</strong> &middot; university of florida &middot; january to may 2023</p>
 			  <blockquote>MUT 6617 (see <a href="https://digitalworlds.ufl.edu/syllabi/2021/Summer/2021-Summer-MUT%206617%20-%20Approaches%20to%20Theoretical%20Analysis-196819.pdf">my friend Jennifer's syllabus</a> for my model) online for master's students: music theory/composition/analysis with an emphasis on practical applications to the field of music education</blockquote>
@@ -246,7 +249,7 @@ describe("Hello World worker", () => {
 			  </div>
 
 			  <h2><a href="https://youtube.com/@jordan-lenchitz/videos">jordan</a> <a href="https://scholar.google.com/citations?user=pDsbnHcAAAAJ&hl=en">lenchitz</a></h2>
-			  <h3>systems engineer and experimental artist</h3>
+			  <h3>systems engineer <a href="https://github.com/jordan-lenchitz/resume-worker">and</a> experimental artist</h3>
 
 			  <h3>likes:</h3>
 			  <ul>
@@ -260,6 +263,9 @@ describe("Hello World worker", () => {
 			  <p><strong><a href="https://central.mychart.org">site</a> reliability engineer</strong> &middot; epic systems's epic hosting &middot; june 2023 to may 2026</p>
 			  <blockquote>my primary job from 2024 onward was ensuring 100% single sign-on (SSO) uptime for mychart central. i architected <a href="https://www.intersystems.com/news/intersystems-iris-data-platform-adopted-by-epic-for-its-new-generation-of-high-performance-scalability-and-architecture-flexibility/">intersystems iris</a> backends both on-prem and in public cloud, built and maintained unique <a href="https://datatracker.ietf.org/doc/html/rfc8446">tls 1.3</a> infrastructure for SOC 2 compliance, troubleshooted an etl modernization project moving from on-prem nightly to <a href="https://rsmus.com/insights/services/digital-transformation/epics-shift-to-microsoft-fabric-data-analytics.html">cogito cloud</a> (epic's realtime analytics product leveraging microsoft fabric and snowflake), and helped improve cross-team server observability leveraging Grafana </blockquote>
 			  <blockquote>beyond mychart central i supported the backend for the epic instances of dozens of healthcare organizations in the UK Canada and United States. i also had the honor of working with <a href="https://www.fisglobal.com/">FIS</a> on their <a href="https://sourceforge.net/projects/fis-gtm/">open-source GT.M ("Greystone Technology MUMPS")</a>. if you love free and open-source software check out this cool release note i validated <a href="https://fis-gtm.sourceforge.io/releasenotes/GTM_V7.1-009_Release_Notes.html#id29">(GTM-10833)</a>; if you think you do not love free and open-source software go read GT.M's <a href="https://web.archive.org/web/20001209123800/http://linuxpr.com/releases/2859.html">original gnu/linux open source press release</a> and then you will :)</blockquote>
+
+			  <p><strong>volunteer manager</strong> &middot; society for minimalist music &middot; may 2022 to may 2026</p>
+			  <blockquote>managed the web presence, digital archives, and server infrastructure for the society for minimalist music. this mostly involved running a tiny digital ocean droplet that had an nginx reverse proxy to a node backend with a sqlite db that would occasionally receive a PR from someone proposing a change to the CSS or a typo fix in a blog post about steve reich's clapping music. i also helped migrate from legacy to squarespace and paypal integration for membership dues and donations</blockquote>
 
 			  <p><strong>adjunct assistant professor of music</strong> &middot; university of florida &middot; january to may 2023</p>
 			  <blockquote>MUT 6617 (see <a href="https://digitalworlds.ufl.edu/syllabi/2021/Summer/2021-Summer-MUT%206617%20-%20Approaches%20to%20Theoretical%20Analysis-196819.pdf">my friend Jennifer's syllabus</a> for my model) online for master's students: music theory/composition/analysis with an emphasis on practical applications to the field of music education</blockquote>
