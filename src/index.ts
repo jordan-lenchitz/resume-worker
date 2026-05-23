@@ -216,7 +216,7 @@ export default {
 
     if (url.pathname === '/sudo') {
       const auth = request.headers.get('Authorization');
-      if (auth !== 'Basic YWRtaW46c3Vkbw==') {
+      if (auth !== 'Basic YWRtaW46aW5jb3JyZWN0IG5vbmhvcnNlIGJhdHRlcnkgc3RhcGxlbid0') {
         return new Response('unauthorized', {
           status: 401,
           headers: {
