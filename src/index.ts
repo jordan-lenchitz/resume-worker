@@ -156,6 +156,10 @@ verify status : cryptographically valid, socially meaningless
 </body>
 </html>`;
 
+export interface Env {
+  SUDO_AUTH_B64?: string;
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -227,7 +231,8 @@ export default {
 
     if (url.pathname === '/sudo') {
       const auth = request.headers.get('Authorization');
-      if (auth !== 'Basic YWRtaW46aW5jb3JyZWN0IG5vbmhvcnNlIGJhdHRlcnkgc3RhcGxlbid0') {
+      const expectedAuth = env.SUDO_AUTH_B64 ? `Basic ${env.SUDO_AUTH_B64}` : 'Basic ' + btoa('admin:admin'); // fallback for local dev if unset
+      if (auth !== expectedAuth) {
         return new Response('unauthorized', {
           status: 401,
           headers: {
