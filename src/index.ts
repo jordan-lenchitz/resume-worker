@@ -158,6 +158,7 @@ verify status : cryptographically valid, socially meaningless
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
     const serverData = {
       edge_colo: request.cf?.colo || 'UNKNOWN',
       edge_tls: {
@@ -182,43 +183,67 @@ export default {
     };
 
     const safeData = JSON.stringify(serverData).replace(/</g, '\\u003c');
+    
+    const renderDiagnostics = `
+      let cd = { gpu: 'unknown', hardware: {}, screen: {} };
+      try {
+        const gl = document.createElement('canvas').getContext('webgl');
+        if (gl) {
+          const ext = gl.getExtension('WEBGL_debug_renderer_info');
+          if (ext) cd.gpu = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+        }
+        cd.hardware = {
+          concurrency: navigator.hardwareConcurrency,
+          memory: navigator.deviceMemory,
+          platform: navigator.platform,
+          connection: navigator.connection ? {
+            effectiveType: navigator.connection.effectiveType,
+            downlink: navigator.connection.downlink,
+            rtt: navigator.connection.rtt
+          } : 'unknown'
+        };
+        cd.screen = { w: screen.width, h: screen.height, d: screen.colorDepth };
+      } catch(err){}
+      const p = {
+        STATUS: window._authMode ? "DEEP_DIAGNOSTICS_ACTIVE (MOBILE_AUTH)" : "DEEP_DIAGNOSTICS_ACTIVE",
+        TIMESTAMP: new Date().toISOString(),
+        SERVER_TELEMETRY: window._sd,
+        CLIENT_TELEMETRY: cd
+      };
+      document.body.className = '';
+      document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:0;box-sizing:border-box;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;word-break:break-all;">[// DEEP_DIAGNOSTICS_AUTHORIZED //]</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:12px;line-height:1.4;overflow-x:hidden;">' + JSON.stringify(p, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">_</div></div><style>body{margin:0;padding:0;background:#050505;}@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
+    `;
+
+    if (url.pathname === '/sudo') {
+      const auth = request.headers.get('Authorization');
+      if (auth !== 'Basic YWRtaW46c3Vkbw==') {
+        return new Response('unauthorized', {
+          status: 401,
+          headers: {
+            'WWW-Authenticate': 'Basic realm="restricted telemetry access"',
+            'Content-Type': 'text/plain'
+          }
+        });
+      }
+      const autoScript = `<script>window._sd = ${safeData}; window._authMode = true; window.onload = () => { ${renderDiagnostics} };</script>`;
+      return new Response('<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body>' + autoScript + '</body></html>', {
+        headers: { 'content-type': 'text/html;charset=UTF-8' }
+      });
+    }
+
     const script = `<script>
       window._sd = ${safeData};
+      window._authMode = false;
       let _k = [];
       window.addEventListener('keydown', e => {
         _k.push(e.key);
         if (_k.length > 4) _k.shift();
         if (_k.join('') === 'sudo') {
-          let cd = { gpu: 'unknown', hardware: {}, screen: {} };
-          try {
-            const gl = document.createElement('canvas').getContext('webgl');
-            if (gl) {
-              const ext = gl.getExtension('WEBGL_debug_renderer_info');
-              if (ext) cd.gpu = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
-            }
-            cd.hardware = {
-              concurrency: navigator.hardwareConcurrency,
-              memory: navigator.deviceMemory,
-              platform: navigator.platform,
-              connection: navigator.connection ? {
-                effectiveType: navigator.connection.effectiveType,
-                downlink: navigator.connection.downlink,
-                rtt: navigator.connection.rtt
-              } : 'unknown'
-            };
-            cd.screen = { w: screen.width, h: screen.height, d: screen.colorDepth };
-          } catch(err){}
-          const p = {
-            STATUS: "DEEP_DIAGNOSTICS_ACTIVE",
-            TIMESTAMP: new Date().toISOString(),
-            SERVER_TELEMETRY: window._sd,
-            CLIENT_TELEMETRY: cd
-          };
-          document.body.className = '';
-          document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:-40px -20px;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;">[// DEEP_DIAGNOSTICS_AUTHORIZED //]</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:14px;line-height:1.4;">' + JSON.stringify(p, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">_</div></div><style>@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
+          ${renderDiagnostics}
         }
       });
     </script>`;
+    
     return new Response(resumeHtml.replace('</body>', script + '\\n</body>'), {
       headers: {
         "content-type": "text/html;charset=UTF-8",
