@@ -368,19 +368,24 @@ export default {
         "SERVER TELEMETRY": window._sd,
         "CLIENT TELEMETRY": cd
       };
-      const sortZtoA = obj => {
-        if (Array.isArray(obj)) return obj.map(sortZtoA);
-        if (obj !== null && typeof obj === 'object') {
-          return Object.keys(obj).sort((a, b) => a > b ? -1 : a < b ? 1 : 0).reduce((acc, key) => {
-            acc[key] = sortZtoA(obj[key]);
-            return acc;
-          }, {});
+      const sortZtoAAndSlop = x => {
+        if (typeof x === 'string') return x.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim();
+        if (Array.isArray(x)) return x.map(sortZtoAAndSlop);
+        if (x !== null && typeof x === 'object') {
+          const r = {};
+          const cleanKeys = Object.keys(x).map(k => ({
+            orig: k,
+            clean: k.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim() || 'unnamed'
+          }));
+          cleanKeys.sort((a, b) => a.clean > b.clean ? -1 : a.clean < b.clean ? 1 : 0);
+          for (let obj of cleanKeys) r[obj.clean] = sortZtoAAndSlop(x[obj.orig]);
+          return r;
         }
-        return obj;
+        return x;
       };
-      const sortedP = sortZtoA(p);
+      const sortedP = sortZtoAAndSlop(p);
       document.body.className = '';
-      document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:0;box-sizing:border-box;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;word-break:break-all;">[// MAXIMALIST_TELEMETRY_AUTHORIZED //]</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:12px;line-height:1.4;overflow-x:hidden;">' + JSON.stringify(sortedP, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">_</div></div><style>body{margin:0;padding:0;background:#050505;}@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
+      document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:0;box-sizing:border-box;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;word-break:break-all;">maximalist telemetry authorized</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:12px;line-height:1.4;overflow-x:hidden;">' + JSON.stringify(sortedP, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">&#9608;</div></div><style>body{margin:0;padding:0;background:#050505;}@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
     `;
 
     if (url.pathname === '/sudo') {
