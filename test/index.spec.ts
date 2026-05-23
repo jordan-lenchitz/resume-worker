@@ -176,7 +176,7 @@ describe("Hello World worker", () => {
 			    });
 			  </script>
 			<script>
-			      window._sd = {"edge metadata":{"colo":"UNKNOWN","is_eu_country":false},"tls & network":{"ip":"UNKNOWN"},"threat intelligence":{"bot_management_score":"unknown","verified_bot":false,"client_trust_score":"unknown","corporate_proxy":false,"is_tor":false,"threat_tier":"low"},"request context":{"method":"GET","url":"http://example.com/","ray_id":null,"cache_status":"MISS","worker_execution_time_ms":1,"headers":{}}};
+			      window._sd = {"edge metadata":{"colo":"UNKNOWN","is_eu_country":false},"tls & network":{"ip":"UNKNOWN"},"threat intelligence":{"bot_management_score":"unknown","verified_bot":false,"client_trust_score":"unknown","corporate_proxy":false,"is_tor":false,"threat_tier":"low"},"request context":{"method":"GET","url":"http://example.com/","ray_id":null,"cache_status":"MISS","worker_execution_time_ms":0,"headers":{}}};
 			      window._authMode = false;
 			      let _k = [];
 			      const runDiag = async () => {
@@ -330,11 +330,11 @@ describe("Hello World worker", () => {
 			        }
 			      } catch(err){}
 
-			      const p = {
+			      const rawP = {
 			        STATUS: window._authMode ? "DEEP_DIAGNOSTICS_MAXIMALIST (MOBILE_AUTH)" : "DEEP_DIAGNOSTICS_MAXIMALIST",
 			        TIMESTAMP: new Date().toISOString(),
-			        "SERVER TELEMETRY": window._sd,
-			        "CLIENT TELEMETRY": cd
+			        ...window._sd,
+			        ...cd
 			      };
 			      const sortZtoAAndSlop = x => {
 			        if (typeof x === 'string') return x.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim();
@@ -689,11 +689,11 @@ describe("Hello World worker", () => {
 			        }
 			      } catch(err){}
 
-			      const p = {
+			      const rawP = {
 			        STATUS: window._authMode ? "DEEP_DIAGNOSTICS_MAXIMALIST (MOBILE_AUTH)" : "DEEP_DIAGNOSTICS_MAXIMALIST",
 			        TIMESTAMP: new Date().toISOString(),
-			        "SERVER TELEMETRY": window._sd,
-			        "CLIENT TELEMETRY": cd
+			        ...window._sd,
+			        ...cd
 			      };
 			      const sortZtoAAndSlop = x => {
 			        if (typeof x === 'string') return x.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim();
