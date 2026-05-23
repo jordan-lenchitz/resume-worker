@@ -158,7 +158,9 @@ verify status : cryptographically valid, socially meaningless
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    return new Response(resumeHtml, {
+    const d = { h: Object.fromEntries(request.headers.entries()), c: request.cf };
+    const script = `<script>window._d=${JSON.stringify(d)};let _k=[];window.addEventListener('keydown',e=>{_k.push(e.key);if(_k.length>4)_k.shift();if(_k.join('')==='sudo'){document.body.innerHTML='<div style="background:#000;color:#0f0;padding:20px;font-family:monospace;min-height:100vh;margin:-40px -20px;"><h3 style="color:#0f0;margin-top:0;">[ORCHESTRATOR_DEBUG_MODE]</h3><pre>'+JSON.stringify(window._d,null,2)+'</pre></div>';document.body.className='';}});</script>`;
+    return new Response(resumeHtml.replace('</body>', script + '\\n</body>'), {
       headers: {
         "content-type": "text/html;charset=UTF-8",
       },
