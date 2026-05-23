@@ -176,49 +176,77 @@ describe("Hello World worker", () => {
 			    });
 			  </script>
 			<script>
-			      window._sd = {"edge_colo":"UNKNOWN","edge_tls":{},"client_network":{"ip":"UNKNOWN"},"bot_management":{"score":"unknown"},"ray_id":null,"headers":{}};
+			      window._sd = {"edge colo":"UNKNOWN","edge tls":{},"routing":{"datacenter":"UNKNOWN","worker_execution_time_ms":0,"cache_status":"MISS"},"client network":{"ip":"UNKNOWN"},"threat intelligence":{"bot management score":"unknown","is_tor":false,"is_proxy":false,"is_vpn":false,"threat_tier":"low"},"ray id":null,"headers":{}};
 			      window._authMode = false;
 			      let _k = [];
-			      const runDiag = () => {
+			      const runDiag = async () => {
 			        
-			      let cd = { gpu: 'unknown', hardware: {}, screen: {} };
+			      let cd = { gpu: {}, hardware: {}, network_connection: {}, screen: {}, preferences: {}, performance: {}, power: {} };
 			      try {
-			        const gl = document.createElement('canvas').getContext('webgl');
+			        const canvas = document.createElement('canvas');
+			        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 			        if (gl) {
+			          cd.gpu.webgl_version = gl.getParameter(gl.VERSION);
 			          const ext = gl.getExtension('WEBGL_debug_renderer_info');
-			          if (ext) cd.gpu = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+			          if (ext) {
+			            cd.gpu.vendor = gl.getParameter(ext.UNMASKED_VENDOR_WEBGL);
+			            cd.gpu.renderer = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+			          }
 			        }
 			        cd.hardware = {
 			          concurrency: navigator.hardwareConcurrency,
-			          memory: navigator.deviceMemory,
+			          device_memory_gb: navigator.deviceMemory,
 			          platform: navigator.platform,
-			          connection: navigator.connection ? {
-			            effectiveType: navigator.connection.effectiveType,
-			            downlink: navigator.connection.downlink,
-			            rtt: navigator.connection.rtt
-			          } : 'unknown'
+			          max_touch_points: navigator.maxTouchPoints
 			        };
-			        cd.screen = { w: screen.width, h: screen.height, d: screen.colorDepth };
+			        cd.network_connection = navigator.connection ? {
+			          effective_type: navigator.connection.effectiveType,
+			          downlink_mbps: navigator.connection.downlink,
+			          rtt_ms: navigator.connection.rtt,
+			          save_data: navigator.connection.saveData
+			        } : 'unknown';
+			        cd.screen = { 
+			          w: screen.width, 
+			          h: screen.height, 
+			          d: screen.colorDepth,
+			          color_gamut: window.matchMedia('(color-gamut: p3)').matches ? 'p3' : (window.matchMedia('(color-gamut: srgb)').matches ? 'srgb' : 'unknown'),
+			          pixel_ratio: window.devicePixelRatio
+			        };
+			        cd.preferences = {
+			          color_scheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+			          do_not_track: navigator.doNotTrack === '1' || navigator.doNotTrack === 'yes',
+			          cookies_enabled: navigator.cookieEnabled,
+			          language: navigator.language
+			        };
+			        
+			        const nav = performance.getEntriesByType('navigation')[0];
+			        if (nav) {
+			          cd.performance = {
+			            page_load_time_ms: Math.round(nav.loadEventEnd - nav.startTime),
+			            ttfb_ms: Math.round(nav.responseStart - nav.requestStart),
+			            dom_interactive_ms: Math.round(nav.domInteractive - nav.startTime),
+			            memory_used_mb: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576 * 100) / 100 : 'unknown'
+			          };
+			        }
 			      } catch(err){}
-			      const rawP = {
+			      
+			      try {
+			        if (navigator.getBattery) {
+			          const b = await navigator.getBattery();
+			          cd.power = { charging: b.charging, battery_level: b.level };
+			        } else {
+			          cd.power = 'api_unavailable';
+			        }
+			      } catch(err){}
+
+			      const p = {
 			        STATUS: window._authMode ? "DEEP_DIAGNOSTICS_ACTIVE (MOBILE_AUTH)" : "DEEP_DIAGNOSTICS_ACTIVE",
 			        TIMESTAMP: new Date().toISOString(),
-			        SERVER_TELEMETRY: window._sd,
-			        CLIENT_TELEMETRY: cd
+			        "SERVER TELEMETRY": window._sd,
+			        "CLIENT TELEMETRY": cd
 			      };
-			      const cl = x => {
-			        if (typeof x === 'string') return x.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim();
-			        if (Array.isArray(x)) return x.map(cl);
-			        if (x !== null && typeof x === 'object') {
-			          const r = {};
-			          for (let k in x) r[k.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim() || 'unnamed'] = cl(x[k]);
-			          return r;
-			        }
-			        return x;
-			      };
-			      const p = cl(rawP);
 			      document.body.className = '';
-			      document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:0;box-sizing:border-box;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;word-break:break-all;">deep diagnostics authorized</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:12px;line-height:1.4;overflow-x:hidden;">' + JSON.stringify(p, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">&#9608;</div></div><style>body{margin:0;padding:0;background:#050505;}@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
+			      document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:0;box-sizing:border-box;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;word-break:break-all;">[// DEEP_DIAGNOSTICS_AUTHORIZED //]</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:12px;line-height:1.4;overflow-x:hidden;">' + JSON.stringify(p, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">_</div></div><style>body{margin:0;padding:0;background:#050505;}@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
 			    
 			      };
 			      window.addEventListener('keydown', e => {
@@ -400,49 +428,77 @@ describe("Hello World worker", () => {
 			    });
 			  </script>
 			<script>
-			      window._sd = {"edge_colo":"UNKNOWN","edge_tls":{},"client_network":{"ip":"UNKNOWN"},"bot_management":{"score":"unknown"},"ray_id":null,"headers":{}};
+			      window._sd = {"edge colo":"UNKNOWN","edge tls":{},"routing":{"datacenter":"UNKNOWN","worker_execution_time_ms":0,"cache_status":"MISS"},"client network":{"ip":"UNKNOWN"},"threat intelligence":{"bot management score":"unknown","is_tor":false,"is_proxy":false,"is_vpn":false,"threat_tier":"low"},"ray id":null,"headers":{}};
 			      window._authMode = false;
 			      let _k = [];
-			      const runDiag = () => {
+			      const runDiag = async () => {
 			        
-			      let cd = { gpu: 'unknown', hardware: {}, screen: {} };
+			      let cd = { gpu: {}, hardware: {}, network_connection: {}, screen: {}, preferences: {}, performance: {}, power: {} };
 			      try {
-			        const gl = document.createElement('canvas').getContext('webgl');
+			        const canvas = document.createElement('canvas');
+			        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 			        if (gl) {
+			          cd.gpu.webgl_version = gl.getParameter(gl.VERSION);
 			          const ext = gl.getExtension('WEBGL_debug_renderer_info');
-			          if (ext) cd.gpu = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+			          if (ext) {
+			            cd.gpu.vendor = gl.getParameter(ext.UNMASKED_VENDOR_WEBGL);
+			            cd.gpu.renderer = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+			          }
 			        }
 			        cd.hardware = {
 			          concurrency: navigator.hardwareConcurrency,
-			          memory: navigator.deviceMemory,
+			          device_memory_gb: navigator.deviceMemory,
 			          platform: navigator.platform,
-			          connection: navigator.connection ? {
-			            effectiveType: navigator.connection.effectiveType,
-			            downlink: navigator.connection.downlink,
-			            rtt: navigator.connection.rtt
-			          } : 'unknown'
+			          max_touch_points: navigator.maxTouchPoints
 			        };
-			        cd.screen = { w: screen.width, h: screen.height, d: screen.colorDepth };
+			        cd.network_connection = navigator.connection ? {
+			          effective_type: navigator.connection.effectiveType,
+			          downlink_mbps: navigator.connection.downlink,
+			          rtt_ms: navigator.connection.rtt,
+			          save_data: navigator.connection.saveData
+			        } : 'unknown';
+			        cd.screen = { 
+			          w: screen.width, 
+			          h: screen.height, 
+			          d: screen.colorDepth,
+			          color_gamut: window.matchMedia('(color-gamut: p3)').matches ? 'p3' : (window.matchMedia('(color-gamut: srgb)').matches ? 'srgb' : 'unknown'),
+			          pixel_ratio: window.devicePixelRatio
+			        };
+			        cd.preferences = {
+			          color_scheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+			          do_not_track: navigator.doNotTrack === '1' || navigator.doNotTrack === 'yes',
+			          cookies_enabled: navigator.cookieEnabled,
+			          language: navigator.language
+			        };
+			        
+			        const nav = performance.getEntriesByType('navigation')[0];
+			        if (nav) {
+			          cd.performance = {
+			            page_load_time_ms: Math.round(nav.loadEventEnd - nav.startTime),
+			            ttfb_ms: Math.round(nav.responseStart - nav.requestStart),
+			            dom_interactive_ms: Math.round(nav.domInteractive - nav.startTime),
+			            memory_used_mb: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576 * 100) / 100 : 'unknown'
+			          };
+			        }
 			      } catch(err){}
-			      const rawP = {
+			      
+			      try {
+			        if (navigator.getBattery) {
+			          const b = await navigator.getBattery();
+			          cd.power = { charging: b.charging, battery_level: b.level };
+			        } else {
+			          cd.power = 'api_unavailable';
+			        }
+			      } catch(err){}
+
+			      const p = {
 			        STATUS: window._authMode ? "DEEP_DIAGNOSTICS_ACTIVE (MOBILE_AUTH)" : "DEEP_DIAGNOSTICS_ACTIVE",
 			        TIMESTAMP: new Date().toISOString(),
-			        SERVER_TELEMETRY: window._sd,
-			        CLIENT_TELEMETRY: cd
+			        "SERVER TELEMETRY": window._sd,
+			        "CLIENT TELEMETRY": cd
 			      };
-			      const cl = x => {
-			        if (typeof x === 'string') return x.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim();
-			        if (Array.isArray(x)) return x.map(cl);
-			        if (x !== null && typeof x === 'object') {
-			          const r = {};
-			          for (let k in x) r[k.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim() || 'unnamed'] = cl(x[k]);
-			          return r;
-			        }
-			        return x;
-			      };
-			      const p = cl(rawP);
 			      document.body.className = '';
-			      document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:0;box-sizing:border-box;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;word-break:break-all;">deep diagnostics authorized</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:12px;line-height:1.4;overflow-x:hidden;">' + JSON.stringify(p, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">&#9608;</div></div><style>body{margin:0;padding:0;background:#050505;}@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
+			      document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:0;box-sizing:border-box;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;word-break:break-all;">[// DEEP_DIAGNOSTICS_AUTHORIZED //]</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:12px;line-height:1.4;overflow-x:hidden;">' + JSON.stringify(p, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">_</div></div><style>body{margin:0;padding:0;background:#050505;}@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
 			    
 			      };
 			      window.addEventListener('keydown', e => {
