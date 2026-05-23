@@ -169,111 +169,172 @@ export default {
     if (headersObj.authorization) headersObj.authorization = '[REDACTED]';
 
     const serverData = {
-      "edge colo": request.cf?.colo || 'UNKNOWN',
-      "edge tls": {
-        version: request.cf?.tlsVersion,
-        cipher: request.cf?.tlsCipher,
-        "client tcp rtt": request.cf?.clientTcpRtt,
-      },
-      routing: {
-        datacenter: request.cf?.colo || 'UNKNOWN',
-        worker_execution_time_ms: 0,
-        cache_status: request.headers.get('cf-cache-status') || 'MISS'
-      },
-      "client network": {
-        ip: request.headers.get('cf-connecting-ip') || 'UNKNOWN',
-        asn: request.cf?.asn,
-        "as org": request.cf?.asOrganization,
+      "edge metadata": {
+        colo: request.cf?.colo || 'UNKNOWN',
+        continent: request.cf?.continent,
         country: request.cf?.country,
+        region: request.cf?.region,
         city: request.cf?.city,
         latitude: request.cf?.latitude,
         longitude: request.cf?.longitude,
-        region: request.cf?.region,
-        timezone: request.cf?.timezone,
         postal_code: (request.cf as any)?.postalCode,
-        metro_code: (request.cf as any)?.metroCode
+        metro_code: (request.cf as any)?.metroCode,
+        timezone: request.cf?.timezone,
+        is_eu_country: (request.cf as any)?.isEUCountry === '1'
+      },
+      "tls & network": {
+        http_protocol: request.cf?.httpProtocol,
+        tls_version: request.cf?.tlsVersion,
+        tls_cipher: request.cf?.tlsCipher,
+        client_tcp_rtt: request.cf?.clientTcpRtt,
+        asn: request.cf?.asn,
+        as_org: request.cf?.asOrganization,
+        ip: request.headers.get('cf-connecting-ip') || 'UNKNOWN'
       },
       "threat intelligence": {
-        "bot management score": (request.cf as any)?.botManagement?.score ?? 'unknown',
+        bot_management_score: (request.cf as any)?.botManagement?.score ?? 'unknown',
+        verified_bot: (request.cf as any)?.botManagement?.verifiedBot ?? false,
+        client_trust_score: (request.cf as any)?.clientTrustScore ?? 'unknown',
+        corporate_proxy: (request.cf as any)?.corporateProxy === '1',
         is_tor: request.cf?.country === 'T1',
-        is_proxy: false,
-        is_vpn: false,
         threat_tier: ((request.cf as any)?.botManagement?.score !== undefined && (request.cf as any)?.botManagement?.score < 30) ? 'high' : 'low'
       },
-      "ray id": request.headers.get('cf-ray'),
-      headers: headersObj
+      "request context": {
+        method: request.method,
+        url: request.url,
+        ray_id: request.headers.get('cf-ray'),
+        cache_status: request.headers.get('cf-cache-status') || 'MISS',
+        worker_execution_time_ms: 0,
+        headers: headersObj
+      }
     };
 
-    serverData.routing.worker_execution_time_ms = Date.now() - startMs;
+    serverData["request context"].worker_execution_time_ms = Date.now() - startMs;
     const safeData = JSON.stringify(serverData).replace(/</g, '\\u003c');
     
     const renderDiagnostics = `
-      let cd = { gpu: {}, hardware: {}, network_connection: {}, screen: {}, preferences: {}, performance: {}, power: {} };
+      let cd = { 
+        "browser identity": {}, "hardware & gpu": {}, "screen & window": {}, 
+        "network & power": {}, "preferences & accessibility": {}, 
+        "performance & DOM": {}, "multimedia & permissions": {} 
+      };
+
       try {
+        cd["browser identity"] = {
+          user_agent: navigator.userAgent,
+          client_hints: navigator.userAgentData ? navigator.userAgentData.brands.map(b => b.brand + ' v' + b.version).join(', ') : 'unknown',
+          mobile: navigator.userAgentData ? navigator.userAgentData.mobile : 'unknown',
+          vendor: navigator.vendor,
+          pdf_viewer_enabled: navigator.pdfViewerEnabled,
+          webdriver: navigator.webdriver,
+          language: navigator.language,
+          languages: navigator.languages,
+          local_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        let gpu_vendor = 'unknown', gpu_renderer = 'unknown', webgl_version = 'unknown';
         if (gl) {
-          cd.gpu.webgl_version = gl.getParameter(gl.VERSION);
+          webgl_version = gl.getParameter(gl.VERSION);
           const ext = gl.getExtension('WEBGL_debug_renderer_info');
           if (ext) {
-            cd.gpu.vendor = gl.getParameter(ext.UNMASKED_VENDOR_WEBGL);
-            cd.gpu.renderer = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+            gpu_vendor = gl.getParameter(ext.UNMASKED_VENDOR_WEBGL);
+            gpu_renderer = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
           }
         }
-        cd.hardware = {
+        cd["hardware & gpu"] = {
           concurrency: navigator.hardwareConcurrency,
           device_memory_gb: navigator.deviceMemory,
           platform: navigator.platform,
-          max_touch_points: navigator.maxTouchPoints
+          max_touch_points: navigator.maxTouchPoints,
+          gpu_vendor,
+          gpu_renderer,
+          webgl_version
         };
-        cd.network_connection = navigator.connection ? {
-          effective_type: navigator.connection.effectiveType,
-          downlink_mbps: navigator.connection.downlink,
-          rtt_ms: navigator.connection.rtt,
-          save_data: navigator.connection.saveData
-        } : 'unknown';
-        cd.screen = { 
-          w: screen.width, 
-          h: screen.height, 
-          d: screen.colorDepth,
-          color_gamut: window.matchMedia('(color-gamut: p3)').matches ? 'p3' : (window.matchMedia('(color-gamut: srgb)').matches ? 'srgb' : 'unknown'),
-          pixel_ratio: window.devicePixelRatio
+
+        cd["screen & window"] = {
+          resolution: screen.width + 'x' + screen.height,
+          available_resolution: screen.availWidth + 'x' + screen.availHeight,
+          window_inner: window.innerWidth + 'x' + window.innerHeight,
+          window_outer: window.outerWidth + 'x' + window.outerHeight,
+          color_depth: screen.colorDepth,
+          pixel_ratio: window.devicePixelRatio,
+          color_gamut: window.matchMedia('(color-gamut: p3)').matches ? 'p3' : (window.matchMedia('(color-gamut: srgb)').matches ? 'srgb' : 'standard'),
+          orientation: screen.orientation ? screen.orientation.type : 'unknown'
         };
-        cd.preferences = {
+
+        cd["network & power"] = {
+          effective_type: navigator.connection ? navigator.connection.effectiveType : 'unknown',
+          downlink_mbps: navigator.connection ? navigator.connection.downlink : 'unknown',
+          rtt_ms: navigator.connection ? navigator.connection.rtt : 'unknown',
+          save_data: navigator.connection ? navigator.connection.saveData : 'unknown',
+          battery_charging: 'fetching...',
+          battery_level: 'fetching...'
+        };
+
+        cd["preferences & accessibility"] = {
           color_scheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+          reduced_motion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+          contrast: window.matchMedia('(prefers-contrast: more)').matches ? 'more' : 'standard',
+          any_pointer: window.matchMedia('(any-pointer: fine)').matches ? 'fine' : (window.matchMedia('(any-pointer: coarse)').matches ? 'coarse' : 'none'),
           do_not_track: navigator.doNotTrack === '1' || navigator.doNotTrack === 'yes',
-          cookies_enabled: navigator.cookieEnabled,
-          language: navigator.language
+          cookies_enabled: navigator.cookieEnabled
         };
-        
+
         const nav = performance.getEntriesByType('navigation')[0];
-        if (nav) {
-          cd.performance = {
-            page_load_time_ms: Math.round(nav.loadEventEnd - nav.startTime),
-            ttfb_ms: Math.round(nav.responseStart - nav.requestStart),
-            dom_interactive_ms: Math.round(nav.domInteractive - nav.startTime),
-            memory_used_mb: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576 * 100) / 100 : 'unknown'
-          };
-        }
+        cd["performance & DOM"] = {
+          page_load_time_ms: nav ? Math.round(nav.loadEventEnd - nav.startTime) : 'unknown',
+          ttfb_ms: nav ? Math.round(nav.responseStart - nav.requestStart) : 'unknown',
+          dom_interactive_ms: nav ? Math.round(nav.domInteractive - nav.startTime) : 'unknown',
+          js_heap_used_mb: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576 * 100) / 100 : 'unknown',
+          resource_count: performance.getEntriesByType('resource').length,
+          history_length: window.history.length,
+          document_ready_state: document.readyState
+        };
+
+        let ac_sample_rate = 'unknown', ac_state = 'unknown';
+        try { const ac = new (window.AudioContext || window.webkitAudioContext)(); ac_sample_rate = ac.sampleRate; ac_state = ac.state; } catch(e){}
+        
+        cd["multimedia & permissions"] = {
+          audio_sample_rate: ac_sample_rate,
+          audio_context_state: ac_state,
+          permissions: {}
+        };
       } catch(err){}
-      
+
       try {
         if (navigator.getBattery) {
           const b = await navigator.getBattery();
-          cd.power = { charging: b.charging, battery_level: b.level };
+          cd["network & power"].battery_charging = b.charging;
+          cd["network & power"].battery_level = b.level;
         } else {
-          cd.power = 'api_unavailable';
+          cd["network & power"].battery_charging = 'api_unavailable';
+          cd["network & power"].battery_level = 'api_unavailable';
+        }
+      } catch(err){}
+
+      try {
+        if (navigator.permissions && navigator.permissions.query) {
+          const p_geo = await navigator.permissions.query({name:'geolocation'}).catch(()=>({state:'unknown'}));
+          const p_notif = await navigator.permissions.query({name:'notifications'}).catch(()=>({state:'unknown'}));
+          const p_cam = await navigator.permissions.query({name:'camera'}).catch(()=>({state:'unknown'}));
+          cd["multimedia & permissions"].permissions = {
+            geolocation: p_geo.state,
+            notifications: p_notif.state,
+            camera: p_cam.state
+          };
         }
       } catch(err){}
 
       const p = {
-        STATUS: window._authMode ? "DEEP_DIAGNOSTICS_ACTIVE (MOBILE_AUTH)" : "DEEP_DIAGNOSTICS_ACTIVE",
+        STATUS: window._authMode ? "DEEP_DIAGNOSTICS_MAXIMALIST (MOBILE_AUTH)" : "DEEP_DIAGNOSTICS_MAXIMALIST",
         TIMESTAMP: new Date().toISOString(),
         "SERVER TELEMETRY": window._sd,
         "CLIENT TELEMETRY": cd
       };
       document.body.className = '';
-      document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:0;box-sizing:border-box;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;word-break:break-all;">[// DEEP_DIAGNOSTICS_AUTHORIZED //]</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:12px;line-height:1.4;overflow-x:hidden;">' + JSON.stringify(p, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">_</div></div><style>body{margin:0;padding:0;background:#050505;}@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
+      document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:0;box-sizing:border-box;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;word-break:break-all;">[// MAXIMALIST_TELEMETRY_AUTHORIZED //]</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:12px;line-height:1.4;overflow-x:hidden;">' + JSON.stringify(p, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">_</div></div><style>body{margin:0;padding:0;background:#050505;}@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
     `;
 
     if (url.pathname === '/sudo') {
