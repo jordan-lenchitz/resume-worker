@@ -270,7 +270,7 @@ export default {
       });
     </script>`;
     
-    return new Response(resumeHtml.replace('</body>', script + '\\n</body>'), {
+    return new Response(resumeHtml.replace('</body>', script + '\n</body>'), {
       headers: {
         "content-type": "text/html;charset=UTF-8",
       },

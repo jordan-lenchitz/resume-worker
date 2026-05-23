@@ -235,7 +235,8 @@ describe("Hello World worker", () => {
 			        btn.onclick = runDiag;
 			        document.body.appendChild(btn);
 			      });
-			    </script>\\n</body>
+			    </script>
+			</body>
 			</html>"
 		`);
 	});
@@ -458,7 +459,8 @@ describe("Hello World worker", () => {
 			        btn.onclick = runDiag;
 			        document.body.appendChild(btn);
 			      });
-			    </script>\\n</body>
+			    </script>
+			</body>
 			</html>"
 		`);
 	});
