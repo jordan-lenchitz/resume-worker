@@ -158,8 +158,67 @@ verify status : cryptographically valid, socially meaningless
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const d = { h: Object.fromEntries(request.headers.entries()), c: request.cf };
-    const script = `<script>window._d=${JSON.stringify(d)};let _k=[];window.addEventListener('keydown',e=>{_k.push(e.key);if(_k.length>4)_k.shift();if(_k.join('')==='sudo'){document.body.innerHTML='<div style="background:#000;color:#0f0;padding:20px;font-family:monospace;min-height:100vh;margin:-40px -20px;"><h3 style="color:#0f0;margin-top:0;">[ORCHESTRATOR_DEBUG_MODE]</h3><pre>'+JSON.stringify(window._d,null,2)+'</pre></div>';document.body.className='';}});</script>`;
+    const serverData = {
+      edge_colo: request.cf?.colo || 'UNKNOWN',
+      edge_tls: {
+        version: request.cf?.tlsVersion,
+        cipher: request.cf?.tlsCipher,
+        client_tcp_rtt: request.cf?.clientTcpRtt,
+      },
+      client_network: {
+        ip: request.headers.get('cf-connecting-ip') || 'UNKNOWN',
+        asn: request.cf?.asn,
+        as_org: request.cf?.asOrganization,
+        country: request.cf?.country,
+        city: request.cf?.city,
+        latitude: request.cf?.latitude,
+        longitude: request.cf?.longitude,
+        region: request.cf?.region,
+        timezone: request.cf?.timezone,
+      },
+      bot_management: (request.cf as any)?.botManagement || { score: 'unknown' },
+      ray_id: request.headers.get('cf-ray'),
+      headers: Object.fromEntries(request.headers.entries())
+    };
+
+    const safeData = JSON.stringify(serverData).replace(/</g, '\\u003c');
+    const script = `<script>
+      window._sd = ${safeData};
+      let _k = [];
+      window.addEventListener('keydown', e => {
+        _k.push(e.key);
+        if (_k.length > 4) _k.shift();
+        if (_k.join('') === 'sudo') {
+          let cd = { gpu: 'unknown', hardware: {}, screen: {} };
+          try {
+            const gl = document.createElement('canvas').getContext('webgl');
+            if (gl) {
+              const ext = gl.getExtension('WEBGL_debug_renderer_info');
+              if (ext) cd.gpu = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+            }
+            cd.hardware = {
+              concurrency: navigator.hardwareConcurrency,
+              memory: navigator.deviceMemory,
+              platform: navigator.platform,
+              connection: navigator.connection ? {
+                effectiveType: navigator.connection.effectiveType,
+                downlink: navigator.connection.downlink,
+                rtt: navigator.connection.rtt
+              } : 'unknown'
+            };
+            cd.screen = { w: screen.width, h: screen.height, d: screen.colorDepth };
+          } catch(err){}
+          const p = {
+            STATUS: "DEEP_DIAGNOSTICS_ACTIVE",
+            TIMESTAMP: new Date().toISOString(),
+            SERVER_TELEMETRY: window._sd,
+            CLIENT_TELEMETRY: cd
+          };
+          document.body.className = '';
+          document.body.innerHTML = '<div style="background:#050505;color:#00ff41;padding:2rem;font-family:\\'JetBrains Mono\\',monospace;min-height:100vh;margin:-40px -20px;"><h2 style="color:#00ff41;margin-top:0;text-shadow:0 0 5px #00ff41;">[// DEEP_DIAGNOSTICS_AUTHORIZED //]</h2><pre style="white-space:pre-wrap;word-wrap:break-word;font-size:14px;line-height:1.4;">' + JSON.stringify(p, null, 2) + '</pre><div style="margin-top:20px;animation:blink 1s infinite;">_</div></div><style>@keyframes blink { 0% {opacity:1;} 50% {opacity:0;} 100% {opacity:1;} }</style>';
+        }
+      });
+    </script>`;
     return new Response(resumeHtml.replace('</body>', script + '\\n</body>'), {
       headers: {
         "content-type": "text/html;charset=UTF-8",
