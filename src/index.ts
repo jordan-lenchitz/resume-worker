@@ -362,11 +362,11 @@ export default {
         }
       } catch(err){}
 
-      const p = {
+      const rawP = {
         STATUS: window._authMode ? "DEEP_DIAGNOSTICS_MAXIMALIST (MOBILE_AUTH)" : "DEEP_DIAGNOSTICS_MAXIMALIST",
         TIMESTAMP: new Date().toISOString(),
-        "SERVER TELEMETRY": window._sd,
-        "CLIENT TELEMETRY": cd
+        ...window._sd,
+        ...cd
       };
       const sortZtoAAndSlop = x => {
         if (typeof x === 'string') return x.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim();
