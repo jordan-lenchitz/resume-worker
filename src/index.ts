@@ -216,7 +216,8 @@ export default {
       let cd = { 
         "browser identity": {}, "hardware & gpu": {}, "screen & window": {}, 
         "network & power": {}, "preferences & accessibility": {}, 
-        "performance & DOM": {}, "multimedia & permissions": {} 
+        "performance & DOM": {}, "multimedia & permissions": {},
+        "typography & fonts": {}
       };
 
       try {
@@ -300,6 +301,40 @@ export default {
           audio_sample_rate: ac_sample_rate,
           audio_context_state: ac_state,
           permissions: {}
+        };
+        
+        // Font Enumeration via Canvas TextMetrics
+        const fctx = document.createElement("canvas").getContext("2d");
+        const testString = "mmmmmmmmmmlli";
+        const baseFonts = ["monospace", "sans-serif", "serif"];
+        const testFonts = [
+          "Arial", "Calibri", "Comic Sans MS", "Consolas", "Courier New", "Georgia", 
+          "Impact", "Lucida Console", "Palatino Linotype", "Segoe UI", "Tahoma", 
+          "Times New Roman", "Trebuchet MS", "Verdana", // Standard Windows
+          "Helvetica Neue", "Menlo", "Monaco", "PingFang SC", "San Francisco", // Mac/Apple
+          "Ubuntu", "Liberation Sans", "DejaVu Sans", "FreeSans", // Linux
+          "Roboto", "Open Sans", "Lato", "Montserrat", "Oswald", // Web/Google
+          "Adobe Clean", "Myriad Pro", "Minion Pro" // Creative Cloud
+        ];
+        
+        const detected = [];
+        for (let font of testFonts) {
+          let found = false;
+          for (let base of baseFonts) {
+            fctx.font = "72px " + base;
+            const baselineWidth = fctx.measureText(testString).width;
+            fctx.font = "72px '" + font + "', " + base;
+            const testWidth = fctx.measureText(testString).width;
+            if (baselineWidth !== testWidth) {
+              found = true;
+              break;
+            }
+          }
+          if (found) detected.push(font);
+        }
+        cd["typography & fonts"] = {
+          installed_fonts: detected,
+          total_detected: detected.length
         };
       } catch(err){}
 
