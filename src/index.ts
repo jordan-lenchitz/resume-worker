@@ -251,12 +251,22 @@ export default {
       window._sd = ${safeData};
       window._authMode = false;
       let _k = [];
+      const runDiag = () => {
+        ${renderDiagnostics}
+      };
       window.addEventListener('keydown', e => {
         _k.push(e.key);
         if (_k.length > 4) _k.shift();
         if (_k.join('') === 'sudo') {
-          ${renderDiagnostics}
+          runDiag();
         }
+      });
+      document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.createElement('button');
+        btn.innerText = 'sudo';
+        btn.style.cssText = 'position:fixed;bottom:5px;right:5px;opacity:0.1;font-size:10px;background:transparent;border:none;cursor:pointer;';
+        btn.onclick = runDiag;
+        document.body.appendChild(btn);
       });
     </script>`;
     
