@@ -63,7 +63,7 @@ const resumeHtml = `<!DOCTYPE html>
     <button onclick="document.body.className='theme-red'">red</button>
   </div>
 
-  <h2><a href="https://www.youtube.com/@jordan-lenchitz/videos">jordan</a> <a href="https://scholar.google.com/citations?user=pDsbnHcAAAAJ&hl=en">lenchitz</a></h2>
+  <h2><a href="https://www.youtube.com/channel/UCCYpb47d3G3TpAN-T_Zc_qg">jordan</a> <a href="https://scholar.google.com/citations?user=pDsbnHcAAAAJ&hl=en">lenchitz</a></h2>
   <h3>systems engineer <a href="https://github.com/jordan-lenchitz/resume-worker">and</a> experimental artist</h3>
 
   <h3>likes:</h3>
