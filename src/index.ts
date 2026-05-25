@@ -9,7 +9,7 @@ const resumeHtml = `<!DOCTYPE html>
       --bg-color: #fdfdfd;
       --text-color: #333;
       --heading-color: #111;
-      --link-color: #0055cc;
+      --link-color: #020202;
       --blockquote-color: #555;
       --blockquote-border: #ccc;
     }
@@ -23,14 +23,14 @@ const resumeHtml = `<!DOCTYPE html>
       background-color: var(--bg-color);
       transition: all 0.3s ease;
     }
-    body.theme-dark { --bg-color: #000; --text-color: #fff; --heading-color: #fff; --link-color: #66b3ff; --blockquote-color: #ddd; --blockquote-border: #777; }
-    body.theme-violet { --bg-color: #9400D3; --text-color: #fff; --heading-color: #fff; --link-color: #e0b0ff; --blockquote-color: #ddd; --blockquote-border: #da70d6; }
-    body.theme-indigo { --bg-color: #4B0082; --text-color: #fff; --heading-color: #fff; --link-color: #b19cd9; --blockquote-color: #ddd; --blockquote-border: #8a2be2; }
-    body.theme-blue { --bg-color: #0000FF; --text-color: #fff; --heading-color: #fff; --link-color: #add8e6; --blockquote-color: #ddd; --blockquote-border: #4169e1; }
-    body.theme-green { --bg-color: #008000; --text-color: #fff; --heading-color: #fff; --link-color: #90ee90; --blockquote-color: #ddd; --blockquote-border: #32cd32; }
-    body.theme-yellow { --bg-color: #FFFF00; --text-color: #000; --heading-color: #000; --link-color: #0000cd; --blockquote-color: #222; --blockquote-border: #b8860b; }
-    body.theme-orange { --bg-color: #FFA500; --text-color: #000; --heading-color: #000; --link-color: #8b0000; --blockquote-color: #222; --blockquote-border: #ff4500; }
-    body.theme-red { --bg-color: #FF0000; --text-color: #fff; --heading-color: #fff; --link-color: #ffb6c1; --blockquote-color: #ddd; --blockquote-border: #dc143c; }
+    body.theme-dark { --bg-color: #000; --text-color: #fff; --heading-color: #fff; --link-color: #fff; --blockquote-color: #ddd; --blockquote-border: #777; }
+    body.theme-violet { --bg-color: #9400D3; --text-color: #fff; --heading-color: #fff; --link-color: #6BFF2C; --blockquote-color: #ddd; --blockquote-border: #da70d6; }
+    body.theme-indigo { --bg-color: #4B0082; --text-color: #fff; --heading-color: #fff; --link-color: #B4FF7D; --blockquote-color: #ddd; --blockquote-border: #8a2be2; }
+    body.theme-blue { --bg-color: #0000FF; --text-color: #fff; --heading-color: #fff; --link-color: #FFFF00; --blockquote-color: #ddd; --blockquote-border: #4169e1; }
+    body.theme-green { --bg-color: #008000; --text-color: #fff; --heading-color: #fff; --link-color: #FF7FFF; --blockquote-color: #ddd; --blockquote-border: #32cd32; }
+    body.theme-yellow { --bg-color: #FFFF00; --text-color: #000; --heading-color: #000; --link-color: #0000FF; --blockquote-color: #222; --blockquote-border: #b8860b; }
+    body.theme-orange { --bg-color: #FFA500; --text-color: #000; --heading-color: #000; --link-color: #005AFF; --blockquote-color: #222; --blockquote-border: #ff4500; }
+    body.theme-red { --bg-color: #FF0000; --text-color: #fff; --heading-color: #fff; --link-color: #00FFFF; --blockquote-color: #ddd; --blockquote-border: #dc143c; }
 
     h2, h3 { color: var(--heading-color); margin-top: 2em; }
     h2 a { color: var(--heading-color); text-decoration: underline; }
