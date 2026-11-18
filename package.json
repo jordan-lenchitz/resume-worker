@@ -7,6 +7,7 @@
     "dev": "wrangler dev -c .config/wrangler.jsonc",
     "start": "wrangler dev -c .config/wrangler.jsonc",
     "test": "vitest -c .config/vitest.config.mts",
+    "typecheck": "tsc --noEmit -p .config/tsconfig.json && tsc --noEmit -p test/tsconfig.json",
     "cf-typegen": "wrangler types -c .config/wrangler.jsonc"
   },
   "devDependencies": {
